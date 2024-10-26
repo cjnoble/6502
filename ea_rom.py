@@ -1,7 +1,8 @@
 
-rom = bytearray([0xea] * 2**15)
+rom = bytearray([0xea] * 2**15) # NoOp Instructions at all locations
 
-rom[0] = 0xa9 # Load A imediate value x42
+
+rom[0] = 0xa9 # Load A immediate value x42
 rom[1] = 0x42
 
 rom[2] = 0x8d # Store A at address x6000
