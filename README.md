@@ -27,7 +27,7 @@ Currently work in progress:
 
 ## Assembler
 
-The assembler used is the 'vasm6502_oldstyle'
+The assembler used is the 'vasm6502_oldstyle'  
 Downloaded from here <http://sun.hasenbraten.de/vasm/> - there is also a github mirror here <https://github.com/StarWolf3000/vasm-mirror>
 
 The assembler cna be run with
@@ -57,13 +57,13 @@ Ben also suggests use of the minipro software <https://gitlab.com/DavidGriffith/
 | Bin | Hex | Area | Notes |
 | --- | --- | --- | --- |
 | 0000 0000 0000 0000 to 0011 1111 1111 1111 | 0000 to 3FFF | RAM | 16th and 15th bit both zero |
-| 0000 0000 0000 0000 to 0000 0000 1111 1111 | 0100 to 00FF | Zero Page (Within RAM) |  |
+| 0000 0000 0000 0000 to 0000 0000 1111 1111 | 0100 to 00FF | Zero Page (Within RAM) | |
 | 0000 0001 0000 0000 to 0000 0001 1111 1111 | 0100 to 01FF | Stack (Within RAM) | 256 bytes - Hard coded in 6502, stack pointer initialised to FF on reset |
-| 0100 0000 0000 0000 to 0101 1111 1111 1111 | 4000 to 5FFF | Not Used          |   |
+| 0100 0000 0000 0000 to 0101 1111 1111 1111 | 4000 to 5FFF | Not Used | |
 | 0110 0000 0000 0000 to 0110 1111 1111 1111 | 6000 to 6FFF | IO | Using 6522 Chip |
-|   TBC                                      | TBC          | Serial      | TBC               |
-| 0110 0000 0000 0000 to 0110 0000 0000 1111 | 6000 to 600F | LCD Display | Using 6522 Chip |
-| 0111 0000 0000 0000 to 0111 1111 1111 1111 | 7000 to 7FFF | Not Used             |                |
+|   TBC                                      | TBC          | Serial (Within IO) | TBC |
+| 0110 0000 0000 0000 to 0110 0000 0000 1111 | 6000 to 600F | LCD Display (Within IO) | Using 6522 Chip |
+| 0111 0000 0000 0000 to 0111 1111 1111 1111 | 7000 to 7FFF | Not Used | |
 | 1000 0000 0000 0000 to 1111 1111 1111 1111 | 8000 to FFFF | EEPROM (32k of data) | 16th bit is set |
 | 1111 1111 1111 1010 to 1111 1111 1111 1011 | FFFA to FFFB | Non maskable interrupt vector |(low byte/high byte) |
 | 1111 1111 1111 1100 to 1111 1111 1111 1101 | FFFC to FFFD | Reset Vector | This is where we will start executing code from (low byte/high byte) |
@@ -73,12 +73,24 @@ Ben also suggests use of the minipro software <https://gitlab.com/DavidGriffith/
 
 6000 to 600F
 
-| Address | Description | Notes |
-| --- | --- | --- |
-| 6000 | Port B ||
-| 6001 | Port A ||
-| 6002 | Data direction register for port B | Set each bit to 1 for output or 0 for input |
-| 6002 | Data direction register for port A | |
+| Address | Register Number | Designation | Description | Notes |
+| --- | --- | --- | --- | --- |
+| 6000 | 0 | PORTB | LCD data output port |  |
+| 6001 | 1 | PORTA | LCD control port | |
+| 6002 | 2 | DDRB | Data direction register for port B | Set each bit to 1 for output or 0 for input |
+| 6003 | 3 | DDRA | Data direction register for port A | Set first 3 pins to output, others to input |
+| 6004 | 4 | T1C-L  |  | |
+| 6005 | 5 | T1C-H  | | |
+| 6006 | 6 | T1L-L  |  | |
+| 6007 | 7 | T1L-H  |  | |
+| 6008 | 8 | T2C-L  |  | |
+| 6009 | 9 | T2C-H  |  | |
+| 600a | a | Shift |  | |  
+| 600b | b | ACR ( Control Register) | | |  
+| 600c | c | PCR (Port Control Register) | Configure interrupts on button press ||  
+| 600d | d | IFR (Interrupt Flag Register) | Read flags to determine interrupt status | |  
+| 600e | e | IER (Interrupt Enable Register) | Enable interrupt interface, allow interrupts on CA1 | Connected to 6502 IRQB |  
+| 600f | f | ORA/IRA | Same as Reg 1 except no "Handshake" | |  
 
 ## LCD Display
 
@@ -264,3 +276,9 @@ Button interrupts are used for continuous calculation.
 | 14  | Zero Page Indexed with Y            | zp,y          |
 | 15  | Zero Page Indirect                  | (zp)          |
 | 16  | Zero Page Indirect Indexed with Y   | (zp),y        |
+
+### Interrupts
+
+IRQB Interrupt Request
+
+NMIB Non maskable interrupt request
