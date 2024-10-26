@@ -1,7 +1,7 @@
-PORTB = $6000
-PORTA = $6001
-DDRB = $6002
-DDRA = $6003
+PORTB = $6000 ; lcd port B
+PORTA = $6001 ; lcd port A
+DDRB = $6002 ; data direction for port B
+DDRA = $6003 ; data direction of port A
 
 SHIFT = $600a
 ACR = $600b
@@ -20,23 +20,25 @@ y = $0212 ; 2 bytes
 z = $0214 ; 2 bytes
 continue = $0001 ; 1 byte, zero page address
 
-E = %10000000
-RW = %01000000
-RS = %00100000
-CLEAR = %00000001
-HOME = %00000010 
+; lcd settings and status
+E = %10000000 ; enable bit
+RW = %01000000 ; read/write bit, 1 = read?
+RS = %00100000 ; register select bit
+CLEAR = %00000001 ; 
+HOME = %00000010 ; 
 
-    .org $8000
+
+    .org $8000 ; start program at $8000
 reset:
     ldx #$ff ; initalise stack pointer to ff
-    txs
+    txs ; transfer to the stack pointer
 
-    ; Configure interupts
-    cli ; Clear interup disable bit to enable interupts
+    ; Configure interrupts
+    cli ; Clear interup disable bit to enable interrupts
 
-    lda #$82 ; Enable interupt interface, Allow interupts on CA1
+    lda #$82 ; Enable interrupt interface, Allow interrupts on CA1
     sta IER
-    lda #$0 ; Set interupt on button press (high ot low transition)
+    lda #$0 ; Set interrupt on button press (high to low transition)
     sta PCR
 
     ; Configure interface ports
@@ -73,12 +75,12 @@ loop:
     lda #0
     sta continue
 
-    sei ; Disable interupts
+    sei ; Disable interrupts
     lda z
     sta value
     lda z + 1 ; 16 bit number so load 1 byte at a time
     sta value + 1
-    cli ; Enable interupts
+    cli ; Enable interrupts
 
     jsr initalise_print
 
@@ -121,12 +123,12 @@ rest_message
     bne rest_message
 
     ; Initalise value to number to convert
-    ;sei ; Disable interupts
+    ;sei ; Disable interrupts
     ;lda counter
     ;sta value
     ;lda counter + 1 ; 16 bit number so load 1 byte at a time
     ;sta value + 1
-    ;cli ; Enable interupts
+    ;cli ; Enable interrupts
 
 divide:
     ; Initalise remainder to zero
@@ -213,7 +215,7 @@ lcd_busy:
 
     lda PORTB ; Read from Port B
     and #%10000000 ; Check for busy flag bit only
-    bne lcd_busy
+    bne lcd_busy ; loop if lcd is busy
 
     lda #RW ; Switch off enable bit
     sta PORTA
@@ -223,12 +225,12 @@ lcd_busy:
     rts
 
 lcd_instruction:
-    jsr lcd_wait
-    sta PORTB
+    jsr lcd_wait ; Wait if lcd is busy
+    sta PORTB ; Instruction in A out on port B
     lda #0 ;Clear RS/RW/E bits
-    sta PORTA
+    sta PORTA ; 
     lda #E ; Set enable bit to send instruction
-    sta PORTA
+    sta PORTA ; 
     lda #0 ; Clear enable bit
     sta PORTA
     rts
@@ -244,13 +246,13 @@ print_char:
     sta PORTA
     rts
 
-nmi:
-    rti
+nmi: ; non maskable interrupt
+    rti ; return from interrupt
 
-irq:
+irq: ; maskable interrupt
     pha
     lda IFR
-    and #%00000010 ; Test for CA1 Interupt
+    and #%00000010 ; Test for CA1 interrupt
     beq exit_irq ; Branch if not CA1
     lda #1
     sta continue
@@ -263,11 +265,11 @@ debounce_loop:
     pla
     tax
 exit_irq:
-    bit PORTA ; Read port A to clear interupt
+    bit PORTA ; Read port A to clear interrupt
     pla
     rti
 
     .org $fffa
-    .word nmi ; non maskable interupt vector
+    .word nmi ; non maskable interrupt vector
     .word reset ; rest vector
-    .word irq ; #interupt request vector
+    .word irq ; interrupt request vector
