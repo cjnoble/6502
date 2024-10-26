@@ -12,12 +12,22 @@ This is code is have written for the "6502 computer", based on the tutorials pro
 ## Assembler
 
 'vasm6502_oldstyle' is the assembler
-Donloaded from here <http://sun.hasenbraten.de/vasm/> - there is also a github mirror here <https://github.com/StarWolf3000/vasm-mirror>
+Downloaded from here <http://sun.hasenbraten.de/vasm/> - there is also a github mirror here <https://github.com/StarWolf3000/vasm-mirror>
 
-    'vasm6502_oldstyle -Fbin -dotdir'
+    vasm6502_oldstyle -Fbin -dotdir <file name>
 
 -Fbin: Outputs binary file  
--dodir: Enables dot directives  
+-dotdir: Enables dot directives  
+
+## Assembling using make.py script
+
+To 
+
+    python make.py <file name>
+
+To view the outputted file (a.out by default):
+
+    python hexdump.py a.out
 
 ## Programming the EEPROM
 
@@ -25,18 +35,19 @@ Uses the Xgrop program provided with the TL866 II plus EEPROM programmer.
 
 ## Memory map
 
-fffa to fffb non maskable interrupt vector  
-fffc to fffd reset vector (low byte/high byte)  
-fffe to ffff interrupt request vector  
-
 | Bin | Hex | Area | Notes |
 | --- | --- | --- | --- |
-| |  | RAM | |
-| 1 0000 0000 to 1 1111 1111 | 0100 to 01FF | Stack | 256 bytes - Hard coded in 6502, stack pointer initialised to FF on reset |
+| 0000 0000 0000 0000 to 0011 1111 1111 1111 | 0000 to 3FFF | RAM | 16th and 15th bit both zero |
+| 0000 0000 0000 0000 to 0000 0000 1111 1111 | 0100 to 00FF | Zero Page (Within RAM) |  |
+| 0000 0001 0000 0000 to 0000 0001 1111 1111 | 0100 to 01FF | Stack (Within RAM) | 256 bytes - Hard coded in 6502, stack pointer initialised to FF on reset |
+||4000 to 5FFF| Not Used ||
 | 0110 0000 0000 0000 to 0111 1111 1111 1111 | 6000 to 7FFF|IO| Using 6522 Chip |
 | |  | Serial | |
-| |  | LCD Display | |
+| | 6000 to 600F | LCD Display | Using 6522 Chip |
 | 1000 0000 0000 0000 to 1111 1111 1111 1111 | 8000 to FFFF | EEPROM (32k of data) | 16th bit is set |
+|1111 1111 1010 1100 to 1111 1111 1111 1011|FFFA to FFFB | Non maskable interrupt vector |(low byte/high byte) |
+|1111 1111 1111 1100 to 1111 1111 1111 1101| FFFC to FFFD | Reset Vector | This is where we will start executing code from (low byte/high byte) |
+|1111 1111 1111 1110 to 1111 1111 1111 1111| FFFE to FFFF | Interrupt request vector | (low byte/high byte) |
 
 ## IO Using 6205 Chip
 
