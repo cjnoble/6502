@@ -1,49 +1,83 @@
+import sys
 
-def add_hex_dec (a, b: int):
+SIZE = 16 # Size of each chunk
 
-    return hex(int(a, 16) + b) 
+def add_hex_and_int (hex_str: str, b: int) -> str:
+    return hex(int(hex_str, 16) + b) 
 
+def print_line(n0, n1, current_row, row_char=""):
+    print(f"{int(n0, 16):08x}-{int(n1, 16):08x}: {current_row} [{row_char}]")
+    return
 
-file_name = "a.out"
+def get_ascii_character(value: int, placeholder: str = '.') -> str:
+    # Check if the value is an ASCII character we want (32-127)
+    if 32 < value <= 127:
+        return chr(value)
+    return placeholder  # Return placeholder for non-ASCII characters
 
-with open(file_name, "rb") as f:
+def decode_row_char(value: str, placeholder: str = '.') -> str:
+    decoded_chars = []
+    for h in value.split(" "):
+        try:
+            byte_value = int(h, 16)  # Convert hex string to an integer
+            char = get_ascii_character(byte_value, placeholder)  # Get the ASCII character
+            decoded_chars.append(char)  # Append either the character or placeholder
+        except ValueError:
+            decoded_chars.append(placeholder)  # If conversion fails, append placeholder
+    return " ".join(decoded_chars)  # Join without commas for clean output
 
-    # read it in in 32byte chunks???
-    size = 32
-    data = {}
+def hex_dump(file_name):
 
-    for i, chunk in enumerate(iter(lambda :f.read(size), b"")):
-        
-        chunk = chunk.hex(" ")
-        n0 = hex(size*i)
-        #
-        # print(f"{n0}-{add_hex_dec(n0, size - 1)}: {chunk}")
+    with open(file_name, "rb") as f:
 
-        data[n0] = chunk
+        # read it in in byte chunks
+        data = {} # Initilise dict, key = location as hex, value = hex value at that location 
 
-n0 = hex(0)
-current_row = data[n0]
-last_key = list(data.keys())[-1]
+        for i, chunk in enumerate(iter(lambda :f.read(SIZE), b"")):
+            
+            chunk_hex = chunk.hex(" ")
+            n0 = hex(SIZE*i)
 
-for key, value in data.items():
+            data[n0] = chunk_hex
 
+    if not data:
+        return  # Handle empty file case
 
-    n1 = add_hex_dec(key, -1)
+    n0 = hex(0)
+    n1 = n0
+    previous_line = ""
+    previous_key = int(n0, 16) - SIZE
+    last_key = list(data.keys())[-1]
 
-    if value != current_row or key == last_key:
+    for key, value in data.items():
 
-        print(f"{n0}-{add_hex_dec(n0, size - 1)}: {current_row}")
+        row_char = decode_row_char(data[key])
 
-        if int(n0, 16) + size -1 != int(n1, 16):
-            print("*")
-            print(n1)
+        # print if value is different from the current row or if it's the last row
+        if value != previous_line or key == last_key:
+            
+            n0 = key
+            previous_line = value
+            
+            n1 = add_hex_and_int(key, SIZE-1)
 
-        n0 = key
-        current_row = value
-        #print(f"{n0}-{n1}: {data}")
+            if int(n0, 16) - SIZE != previous_key:
+                # If we skipped a line that was the same as the previous, then print "*"
+                print("*")
+                print(hex(int(n0, 16) -1 )) # previous n1
 
-        if key == last_key:
-            n1 = add_hex_dec(key, size-1)
-            print(f"{n0}-{n1}: {current_row}")
+            print_line(n0, n1, value, row_char)
 
+            previous_key = int(n0, 16)
 
+        else:
+            #current line is same as previous
+            pass
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python hexdump.py <filename>")
+        sys.exit(1)
+
+    file_name = sys.argv[1] #file_name = "rom.bin"
+    hex_dump(file_name)

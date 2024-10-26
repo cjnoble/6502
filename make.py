@@ -1,10 +1,23 @@
+
 import os
+import sys
 
 def run_command (command):
     output = os.system(command)
     print(output)
 
-assembler = r"vasm6502_oldstyle"
-file = "fib.s"
+def make (file):
 
-run_command(fr"{assembler} -Fbin -dotdir {file}")
+    ASSEMBLER = r"vasm6502_oldstyle"
+
+    run_command(fr"{ASSEMBLER} -Fbin -dotdir {file}")
+
+
+if __name__ == "__main__":
+
+    file_name = sys.argv[1]
+
+    make(file_name)
+
+#file = "fib.s"
+
