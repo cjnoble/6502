@@ -10,7 +10,7 @@ def make (file):
 
     ASSEMBLER = r"vasm6502_oldstyle"
 
-    run_command(fr"{ASSEMBLER} -Fbin -dotdir {file}")
+    run_command(fr"{ASSEMBLER} -Fbin -dotdir -c02 {file}")
 
 
 if __name__ == "__main__":

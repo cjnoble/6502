@@ -32,10 +32,11 @@ Downloaded from here <http://sun.hasenbraten.de/vasm/> - there is also a github 
 
 The assembler cna be run with
 
-    vasm6502_oldstyle -Fbin -dotdir <file name>
+    vasm6502_oldstyle -Fbin -dotdir -c02 <file name>
 
 -Fbin: Outputs binary file  
 -dotdir: Enables dot directives  
+-c02: 65C02 instructions
 
 ## Assembling using make.py script
 
@@ -59,13 +60,13 @@ Ben also suggests use of the minipro software <https://gitlab.com/DavidGriffith/
 | 0000 0000 0000 0000 to 0011 1111 1111 1111 | 0000 to 3FFF | RAM | 16th and 15th bit both zero |
 | 0000 0000 0000 0000 to 0000 0000 1111 1111 | 0100 to 00FF | Zero Page (Within RAM) | |
 | 0000 0001 0000 0000 to 0000 0001 1111 1111 | 0100 to 01FF | Stack (Within RAM) | 256 bytes - Hard coded in 6502, stack pointer initialised to FF on reset |
-| 0100 0000 0000 0000 to 0101 1111 1111 1111 | 4000 to 5FFF | Not Used | |
-| 0110 0000 0000 0000 to 0110 1111 1111 1111 | 6000 to 6FFF | IO | Using 6522 Chip |
-|   TBC                                      | TBC          | Serial (Within IO) | TBC |
-| 0110 0000 0000 0000 to 0110 0000 0000 1111 | 6000 to 600F | LCD Display (Within IO) | Using 6522 Chip |
+| 0100 0000 0000 0000 to 0101 1111 1111 1111 | 4000 to 4FFF | Not Used | |
+| 0101 0000 0000 0000 to 0101 0000 0000 1111 | 5000 to 500F | Serial Interface | TBC |
+| 0110 0000 0000 0000 to 0110 0000 0000 1111 | 6000 to 600F | IO | Using 6522 Chip, LCD Display, Timers, Interrupt handeling etc |
+| 0110 0000 0001 0000 to 0110 1111 1111 1111 | 6010 to 6FFF | Not Used | |
 | 0111 0000 0000 0000 to 0111 1111 1111 1111 | 7000 to 7FFF | Not Used | |
 | 1000 0000 0000 0000 to 1111 1111 1111 1111 | 8000 to FFFF | EEPROM (32k of data) | 16th bit is set |
-| 1111 1111 1111 1010 to 1111 1111 1111 1011 | FFFA to FFFB | Non maskable interrupt vector |(low byte/high byte) |
+| 1111 1111 1111 1010 to 1111 1111 1111 1011 | FFFA to FFFB | Non maskable interrupt vector | (low byte/high byte) |
 | 1111 1111 1111 1100 to 1111 1111 1111 1101 | FFFC to FFFD | Reset Vector | This is where we will start executing code from (low byte/high byte) |
 | 1111 1111 1111 1110 to 1111 1111 1111 1111 | FFFE to FFFF | Interrupt request vector | (low byte/high byte) |
 
@@ -74,22 +75,22 @@ Ben also suggests use of the minipro software <https://gitlab.com/DavidGriffith/
 6000 to 600F
 
 | Address | Register Number | Designation | Description | Notes |
-| --- | --- | --- | --- | --- |
-| 6000 | 0 | PORTB | LCD data output port |  |
-| 6001 | 1 | PORTA | LCD control port | |
-| 6002 | 2 | DDRB | Data direction register for port B | Set each bit to 1 for output or 0 for input |
-| 6003 | 3 | DDRA | Data direction register for port A | Set first 3 pins to output, others to input |
-| 6004 | 4 | T1C-L  |  | |
-| 6005 | 5 | T1C-H  | | |
-| 6006 | 6 | T1L-L  |  | |
-| 6007 | 7 | T1L-H  |  | |
-| 6008 | 8 | T2C-L  |  | |
-| 6009 | 9 | T2C-H  |  | |
-| 600a | a | Shift |  | |  
-| 600b | b | ACR ( Control Register) | | |  
-| 600c | c | PCR (Port Control Register) | Configure interrupts on button press ||  
-| 600d | d | IFR (Interrupt Flag Register) | Read flags to determine interrupt status | |  
-| 600e | e | IER (Interrupt Enable Register) | Enable interrupt interface, allow interrupts on CA1 | Connected to 6502 IRQB |  
+| ---- | - | ----- | -------------------- | --- |
+| 6000 | 0 | PORTB | LCD data output port |     |
+| 6001 | 1 | PORTA | LCD control port     |     |
+| 6002 | 2 | DDRB  | Data direction register for port B | Set each bit to 1 for output or 0 for input |
+| 6003 | 3 | DDRA  | Data direction register for port A | Set first 3 pins to output, others to input |
+| 6004 | 4 | T1C-L |                      |     |
+| 6005 | 5 | T1C-H |                      |     |
+| 6006 | 6 | T1L-L |                      |     |
+| 6007 | 7 | T1L-H |                      |     |
+| 6008 | 8 | T2C-L |                      |     |
+| 6009 | 9 | T2C-H |                      |     |
+| 600a | a | Shift |                      |     |  
+| 600b | b | ACR   | A Control Register   |     |  
+| 600c | c | PCR   | Port Control Register | Configure interrupts on button press |  
+| 600d | d | IFR   | Interrupt Flag Register | Read flags to determine interrupt status |
+| 600e | e | IER   | Interrupt Enable Register | Enable interrupt interface, eg allow interrupts on CA1 |
 | 600f | f | ORA/IRA | Same as Reg 1 except no "Handshake" | |  
 
 ## LCD Display
@@ -280,5 +281,6 @@ Button interrupts are used for continuous calculation.
 ### Interrupts
 
 IRQB Interrupt Request
+- IRQ on 6522 connected to 6502 IRQB
 
 NMIB Non maskable interrupt request
